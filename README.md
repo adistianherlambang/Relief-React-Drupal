@@ -126,9 +126,6 @@ useEffect(() => {
 - **Ensure Drupal's JSON:API is enabled**
 - **Verify API response at** `http://localhost:8080/jsonapi/node/article`
 
-## 📄 License
-This project is licensed under the **MIT** license. You are free to use it as needed.
-
 ---
 
 **Happy Coding! 🚀**

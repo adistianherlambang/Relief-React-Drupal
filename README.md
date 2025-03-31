@@ -64,7 +64,7 @@ export default defineConfig({
 The `ArticleList.tsx` component handles fetching and displaying articles:
 ```tsx
 useEffect(() => {
-    fetch("/jsonapi/node/article")
+    fetch("/jsonapi/node/article") //<<=here
       .then((response) => response.json())
       .then((data) => {
         const included = data.included || [];

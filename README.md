@@ -17,7 +17,7 @@ Make sure you have installed:
 ## 🚀 How to Use
 ### 1. Clone the Repository
 ```sh
-git clone https://github.com/username/react-drupal-frontend.git
+https://github.com/adistianherlambang/Relief-React-Drupal.git
 cd react-drupal-frontend
 ```
 
@@ -125,6 +125,9 @@ useEffect(() => {
   ```
 - **Ensure Drupal's JSON:API is enabled**
 - **Verify API response at** `http://localhost:8080/jsonapi/node/article`
+
+## 📄 License
+This project is licensed under the **MIT** license. You are free to use it as needed.
 
 ---
 

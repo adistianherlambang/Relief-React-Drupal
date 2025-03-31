@@ -1,54 +1,135 @@
-# React + TypeScript + Vite
+# React + TypeScript + Vite Frontend for Drupal Articles
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This project is a **small frontend** built with **React, TypeScript, and Vite** to fetch and display articles exposed via Drupal's **JSON:API**.
 
-Currently, two official plugins are available:
+## 📌 Features
+- **Fetches articles** from a Drupal 10 backend.
+- **Lists articles** with title, image, author, and tags.
+- **Uses Vite** for fast development.
+- **Proxy setup** to handle API requests.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 📋 Prerequisites
+Make sure you have installed:
+- [Node.js](https://nodejs.org/)
+- [Yarn](https://yarnpkg.com/) or [npm](https://www.npmjs.com/)
+- A running **Drupal 10 JSON:API** instance
 
-## Expanding the ESLint configuration
+## 🚀 How to Use
+### 1. Clone the Repository
+```sh
+git clone https://github.com/username/react-drupal-frontend.git
+cd react-drupal-frontend
+```
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### 2. Install Dependencies
+```sh
+yarn install
+# or
+npm install
+```
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
+### 3. Start the Development Server
+```sh
+yarn dev
+# or
+npm run dev
+```
+This will start the frontend on **http://localhost:5173**.
+
+## 📡 API Integration
+The application fetches articles from **Drupal's JSON:API** at:
+```
+http://localhost:8080/jsonapi/node/article
+```
+This is configured in `vite.config.ts`:
+```ts
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    proxy: {
+      '/jsonapi': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        secure: false,
+      },
     },
   },
-})
+});
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 📜 Fetching Articles
+The `ArticleList.tsx` component handles fetching and displaying articles:
+```tsx
+useEffect(() => {
+    fetch("/jsonapi/node/article")
+      .then((response) => response.json())
+      .then((data) => {
+        const included = data.included || [];
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+        const getAuthorName = (id: string) => {
+          const author = included.find((item: any) => item.type === "user--user" && item.id === id);
+          return author ? author.attributes.name : "Unknown";
+        };
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
+        const getImageUrl = (id: string) => {
+          const image = included.find((item: any) => item.type === "file--file" && item.id === id);
+          return image ? `http://localhost:8080${image.attributes.uri.url}` : "";
+        };
+
+        const getTagNames = (tagIds: string[]) => {
+          return tagIds
+            .map((id) => {
+              const tag = included.find((item: any) => item.type === "taxonomy_term--tags" && item.id === id);
+              return tag ? tag.attributes.name : "Unknown Tag";
+            })
+            .filter(Boolean);
+        };
+
+        const formattedArticles = data.data.map((item: any) => ({
+          id: item.id,
+          title: item.attributes.title,
+          author: getAuthorName(item.relationships.field_author?.data?.id || ""),
+          image: getImageUrl(item.relationships.field_image?.data?.id || ""),
+          tags: getTagNames(item.relationships.field_tags?.data?.map((tag: any) => tag.id) || []),
+        }));
+
+        setArticles(formattedArticles);
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.error("Error fetching articles:", error);
+        setLoading(false);
+      });
+  }, []);
 ```
+
+## 📌 Project Structure
+```
+├── src/
+│   ├── components/
+│   │   ├── ArticleList.tsx  # Fetch and display articles
+│   ├── App.tsx              # Main app entry point
+│   ├── main.tsx             # React entry file
+├── vite.config.ts           # API proxy settings
+├── package.json             # Dependencies
+├── README.md                # Documentation
+```
+
+## 🛠 Troubleshooting
+- **Check Vite logs**
+  ```sh
+  yarn dev
+  ```
+- **Ensure Drupal's JSON:API is enabled**
+- **Verify API response at** `http://localhost:8080/jsonapi/node/article`
+
+## 📄 License
+This project is licensed under the **MIT** license. You are free to use it as needed.
+
+---
+
+**Happy Coding! 🚀**
+
